@@ -1,56 +1,30 @@
 import os
+from dotenv import load_dotenv
 from openai import OpenAI
 
-# create AI client
+load_dotenv()
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-def analyze_speech(text):
+SYSTEM_PROMPT = """
+You are Fluenta, an AI English speaking partner.
 
-    prompt = f"""
-You are Fluenta AI, an English speaking coach.
+Talk naturally with the user and help improve English fluency.
 
-A learner said this sentence:
-"{text}"
-
-Do the following:
-
-1. Reply naturally to continue the conversation.
-2. Correct the sentence if it has grammar mistakes.
-3. Give one tip to improve the sentence.
-
-Also score the learner:
-
-Fluency: 0-100
-Grammar: 0-100
-Pronunciation: 0-100
-Vocabulary: 0-100
-
-Return ONLY in this JSON format:
-
-{{
-"reply": "...",
-"correction": "...",
-"tip": "...",
-"score": {{
-"fluency": number,
-"grammar": number,
-"pronunciation": number,
-"vocabulary": number
-}}
-}}
+Rules:
+- Keep replies short (2–3 sentences)
+- Ask follow-up questions
+- Correct grammar politely
 """
 
-    response = client.responses.create(
-        model="gpt-4.1-mini",
-        input=prompt
+async def get_ai_response(user_text: str):
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": user_text}
+        ]
     )
 
-    return {
-        "reply": response.output_text,
-        "score": {
-            "fluency": 80,
-            "grammar": 75,
-            "pronunciation": 70,
-            "vocabulary": 72
-        }
-    }
+    return response.choices[0].message.content
