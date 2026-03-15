@@ -1,7 +1,10 @@
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 OPENAI_API_KEY: str = os.environ.get("OPENAI_API_KEY", "")
-OPENAI_MODEL: str = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+OPENAI_MODEL: str = os.environ.get("OPENAI_MODEL", "llama3-8b-8192")
 MAX_HISTORY_LENGTH: int = int(os.environ.get("MAX_HISTORY_LENGTH", "10"))
 
 if not OPENAI_API_KEY:

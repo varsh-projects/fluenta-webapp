@@ -4,6 +4,7 @@ from app.routes.ai_routes import router as ai_router
 from dotenv import load_dotenv
 
 load_dotenv()
+
 app = FastAPI()
 
 app.add_middleware(

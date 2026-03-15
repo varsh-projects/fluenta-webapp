@@ -8,7 +8,10 @@ from openai import AsyncOpenAI, OpenAIError
 
 from app.config.settings import OPENAI_API_KEY, OPENAI_MODEL, MAX_HISTORY_LENGTH
 
-client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+client = AsyncOpenAI(
+    api_key=OPENAI_API_KEY,
+    base_url="https://api.groq.com/openai/v1",
+)
 
 SYSTEM_PROMPT = """You are Fluenta, a friendly and encouraging English speaking coach.
 
@@ -49,7 +52,6 @@ class AIServiceError(Exception):
 
 
 def _build_messages(user_text: str, history: list[dict]) -> list[dict]:
-    """Build the message list for the OpenAI API call."""
     truncated_history = history[-MAX_HISTORY_LENGTH:]
     return (
         [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -59,11 +61,6 @@ def _build_messages(user_text: str, history: list[dict]) -> list[dict]:
 
 
 async def get_ai_response(user_text: str, history: list[dict]) -> dict:
-    """
-    Call OpenAI and return a structured coaching response dict.
-
-    Raises AIServiceError on API failure.
-    """
     messages = _build_messages(user_text, history)
     try:
         response = await client.chat.completions.create(

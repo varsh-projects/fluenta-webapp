@@ -22,10 +22,6 @@ router = APIRouter()
 
 @router.post("/conversation", response_model=ConversationResponse)
 async def conversation(data: ConversationRequest) -> ConversationResponse:
-    """
-    Save user message, call AI service, save assistant reply, return response.
-    Returns HTTP 503 if the AI service fails.
-    """
     try:
         conversation_service.save_message(data.session_id, "user", data.text)
         history = conversation_service.get_context_window(data.session_id, MAX_HISTORY_LENGTH)
@@ -43,7 +39,6 @@ async def conversation(data: ConversationRequest) -> ConversationResponse:
 
 @router.get("/history", response_model=HistoryResponse)
 async def get_history(session_id: str = Query(...)) -> HistoryResponse:
-    """Return the full conversation history for a session."""
     messages = conversation_service.get_history(session_id)
     return HistoryResponse(
         session_id=session_id,
@@ -53,7 +48,6 @@ async def get_history(session_id: str = Query(...)) -> HistoryResponse:
 
 @router.post("/evaluate", response_model=Score)
 async def evaluate(data: EvaluateRequest) -> Score:
-    """Score the provided text without generating an AI reply."""
     try:
         return await scoring_service.score_text(data.text)
     except AIServiceError as exc:

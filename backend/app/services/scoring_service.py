@@ -9,7 +9,10 @@ from openai import AsyncOpenAI, OpenAIError
 from app.config.settings import OPENAI_API_KEY, OPENAI_MODEL
 from app.schemas.conversation_schema import Score, ScoreExplanations
 
-client = AsyncOpenAI(api_key=OPENAI_API_KEY)
+client = AsyncOpenAI(
+    api_key=OPENAI_API_KEY,
+    base_url="https://api.groq.com/openai/v1",
+)
 
 SCORING_PROMPT = """You are an English language evaluator. Evaluate the following text and return scores.
 
