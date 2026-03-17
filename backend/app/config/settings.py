@@ -3,12 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-OPENAI_API_KEY: str = os.environ.get("OPENAI_API_KEY", "")
-OPENAI_MODEL: str = os.environ.get("OPENAI_MODEL", "llama3-8b-8192")
-MAX_HISTORY_LENGTH: int = int(os.environ.get("MAX_HISTORY_LENGTH", "10"))
+MONGO_URI = os.getenv("MONGO_URI")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-if not OPENAI_API_KEY:
-    raise ValueError(
-        "OPENAI_API_KEY environment variable is not set. "
-        "Please set it before starting the application."
-    )
+DB_NAME = "fluenta"

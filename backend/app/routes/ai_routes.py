@@ -1,54 +1,46 @@
-"""
-API Routes — orchestrates calls to conversation, AI, and scoring services.
-Feature: fluenta-ai-backend
-"""
+from fastapi import APIRouter
+from backend.app.schemas.conversation_schema import ConversationRequest
 
-from fastapi import APIRouter, HTTPException, Query
+from backend.app.services.ai_service import generate_ai_response
+from backend.app.services.scoring_service import calculate_score
+from backend.app.services.transcript_service import create_transcript
 
-from app.services import conversation_service, ai_service, scoring_service
-from app.services.ai_service import AIServiceError
-from app.schemas.conversation_schema import (
-    ConversationRequest,
-    ConversationResponse,
-    EvaluateRequest,
-    HistoryMessage,
-    HistoryResponse,
-    Score,
-)
-from app.config.settings import MAX_HISTORY_LENGTH
+from database.connection import db
+
+from database.models.user_model import create_user, update_user_progress
+from database.models.conversation_model import save_conversation
+from database.models.score_model import save_score
 
 router = APIRouter()
 
+@router.post("/conversation")
+def conversation(req: ConversationRequest):
 
-@router.post("/conversation", response_model=ConversationResponse)
-async def conversation(data: ConversationRequest) -> ConversationResponse:
-    try:
-        conversation_service.save_message(data.session_id, "user", data.text)
-        history = conversation_service.get_context_window(data.session_id, MAX_HISTORY_LENGTH)
-        ai_result = await ai_service.get_ai_response(data.text, history)
-        conversation_service.save_message(data.session_id, "assistant", ai_result["reply"])
-        return ConversationResponse(
-            reply=ai_result["reply"],
-            correction=ai_result.get("correction", ""),
-            tip=ai_result.get("tip", ""),
-            score=ai_result["score"],
-        )
-    except AIServiceError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    # Create user
+    create_user(db, req.username)
 
+    # Get level
+    user = db.users.find_one({"username": req.username})
+    level = user.get("level", "beginner")
 
-@router.get("/history", response_model=HistoryResponse)
-async def get_history(session_id: str = Query(...)) -> HistoryResponse:
-    messages = conversation_service.get_history(session_id)
-    return HistoryResponse(
-        session_id=session_id,
-        messages=[HistoryMessage(role=m["role"], content=m["content"]) for m in messages],
-    )
+    # AI response
+    ai_response = generate_ai_response(req.text, level)
 
+    # Transcript
+    transcript = create_transcript(req.text, ai_response)
 
-@router.post("/evaluate", response_model=Score)
-async def evaluate(data: EvaluateRequest) -> Score:
-    try:
-        return await scoring_service.score_text(data.text)
-    except AIServiceError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    # Score
+    scores = calculate_score(req.text)
+
+    # Save everything
+    save_conversation(db, req.username, transcript, ai_response, scores)
+    save_score(db, req.username, scores)
+
+    # Update progress
+    update_user_progress(db, req.username, scores)
+
+    return {
+        "ai_response": ai_response,
+        "scores": scores,
+        "level": level
+    }

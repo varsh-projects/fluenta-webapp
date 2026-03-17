@@ -1,11 +1,14 @@
-from database.connection import db
 from datetime import datetime
 
-def save_conversation(user_id, transcript, ai_response):
-    conversation = {
-        "user_id": user_id,
+def save_conversation(db, username, transcript, ai_response, scores):
+    db.conversations.insert_one({
+        "username": username,
         "transcript": transcript,
         "ai_response": ai_response,
-        "timestamp": datetime.now()
-    }
-    return db.conversations.insert_one(conversation)
+        "scores": scores,
+        "timestamp": datetime.utcnow()
+    })
+
+
+def get_user_conversations(db, username):
+    return list(db.conversations.find({"username": username}))

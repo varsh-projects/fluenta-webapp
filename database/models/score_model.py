@@ -1,11 +1,15 @@
-from database.connection import db
 from datetime import datetime
 
-def save_score(user_id, fluency_score, grammar_score):
-    score_entry = {
-        "user_id": user_id,
-        "fluency_score": fluency_score, # e.g., 85
-        "grammar_score": grammar_score, # e.g., 70
-        "date": datetime.now()
-    }
-    return db.scores.insert_one(score_entry)
+def save_score(db, username, scores):
+    db.scores.insert_one({
+        "username": username,
+        "fluency": scores["fluency"],
+        "grammar": scores["grammar"],
+        "pronunciation": scores["pronunciation"],
+        "vocabulary": scores["vocabulary"],
+        "timestamp": datetime.utcnow()
+    })
+
+
+def get_user_scores(db, username):
+    return list(db.scores.find({"username": username}))
