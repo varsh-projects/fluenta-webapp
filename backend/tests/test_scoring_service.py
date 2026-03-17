@@ -17,8 +17,8 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from hypothesis import given, settings, strategies as st, HealthCheck
 
-from app.services.scoring_service import score_text
-from app.schemas.conversation_schema import Score
+from backend.app.services.scoring_service import score_text
+from backend.app.schemas.conversation_schema import Score
 
 
 # ---------------------------------------------------------------------------

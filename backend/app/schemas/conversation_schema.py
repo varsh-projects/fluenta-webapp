@@ -3,7 +3,7 @@ from typing import List
 
 
 class ConversationRequest(BaseModel):
-    session_id: str
+    username: str
     text: str
 
 

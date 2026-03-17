@@ -16,13 +16,13 @@ import pytest
 from unittest.mock import AsyncMock, patch
 from hypothesis import given, settings, strategies as st, HealthCheck
 
-from app.services.ai_service import (
+from backend.app.services.ai_service import (
     _build_messages,
     get_ai_response,
     AIServiceError,
     SYSTEM_PROMPT,
 )
-from app.config.settings import MAX_HISTORY_LENGTH
+from backend.app.config.settings import MAX_HISTORY_LENGTH
 
 
 # ---------------------------------------------------------------------------

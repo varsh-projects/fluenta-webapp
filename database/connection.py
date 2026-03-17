@@ -1,5 +1,5 @@
 from pymongo import MongoClient
-from config import Config # Import your settings
+from database.config import Config # Import your settings
 import certifi
 
 # Now we use the variable from config.py instead of the long messy string

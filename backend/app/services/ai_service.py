@@ -1,23 +1,22 @@
-from openai import OpenAI
-from backend.app.config.settings import OPENAI_API_KEY
+from groq import Groq
+import os
+from dotenv import load_dotenv
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+load_dotenv()
 
-def generate_ai_response(user_text, level="beginner"):
-    
-    if level == "beginner":
-        system_prompt = "Talk in simple English. Correct mistakes politely."
-    elif level == "intermediate":
-        system_prompt = "Talk normally. Give slight corrections."
-    else:
-        system_prompt = "Speak fluently. Challenge the user with complex sentences."
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_text}
-        ]
-    )
+def generate_ai_response(text, level):
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",  # ✅ updated working model
+            messages=[
+                {"role": "system", "content": f"You are a helpful assistant for a {level} user."},
+                {"role": "user", "content": text}
+            ]
+        )
+        return response.choices[0].message.content
 
-    return response.choices[0].message.content
+    except Exception as e:
+        print("ERROR:", e)
+        return f"AI error: {str(e)}"

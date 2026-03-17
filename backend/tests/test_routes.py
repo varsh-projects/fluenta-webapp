@@ -15,8 +15,8 @@ import pytest
 from unittest.mock import AsyncMock, patch
 from fastapi.testclient import TestClient
 
-from app.main import app
-import app.services.conversation_service as conv_svc
+from backend.app.main import app
+import backend.app.services.conversation_service as conv_svc
 
 client = TestClient(app)
 

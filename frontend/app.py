@@ -3,53 +3,84 @@ import requests
 
 API_URL = "http://127.0.0.1:8000/ai/conversation"
 
-st.set_page_config(page_title="Fluenta", layout="centered")
+# 🎨 App config
+st.set_page_config(page_title="Fluenta AI", layout="wide")
 
-st.title("🧠 Fluenta - Speak English Confidently")
+# ---------------- LOGIN (FIRST TIME ONLY) ----------------
+if "username" not in st.session_state:
+    st.title("Welcome to Fluenta AI 👩‍💻")
 
-# User input
-username = st.text_input("Enter your username")
+    name = st.text_input("Enter your name")
 
+    if st.button("Start"):
+        if name.strip() == "":
+            st.warning("Please enter your name")
+        else:
+            st.session_state.username = name
+            st.rerun()
+
+    st.stop()
+
+# ---------------- MAIN APP ----------------
+username = st.session_state.username
+
+# Sidebar (like real apps)
+with st.sidebar:
+    st.title("📊 Dashboard")
+    st.write(f"👤 User: {username}")
+
+# Main Title
+st.title("Fluenta AI - Speaking Assistant")
+
+# 👩‍💻 Replace bear with girl image
+st.image("https://pngtree.com/freepng/smiling-3d-cartoon-girl-with-glasses_21094451.html", width=120)
+st.caption("Your AI Speaking Partner")
+
+# Chat history
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-user_input = st.text_input("Speak or type your sentence:")
-
-if st.button("Send"):
-
-    if username and user_input:
-        response = requests.post(API_URL, json={
-            "username": username,
-            "text": user_input
-        })
-
-        if response.status_code == 200:
-            data = response.json()
-
-            ai_reply = data["ai_response"]
-            scores = data["scores"]
-            level = data["level"]
-
-            # Save chat
-            st.session_state.chat_history.append(("You", user_input))
-            st.session_state.chat_history.append(("AI", ai_reply))
-
-            # Display chat
-            st.subheader("💬 Conversation")
-            for speaker, msg in st.session_state.chat_history:
-                st.write(f"**{speaker}:** {msg}")
-
-            # Show scores
-            st.subheader("📊 Your Performance")
-            st.write(f"Fluency: {scores['fluency']}/10")
-            st.write(f"Grammar: {scores['grammar']}/10")
-            st.write(f"Pronunciation: {scores['pronunciation']}/10")
-            st.write(f"Vocabulary: {scores['vocabulary']}/10")
-
-            st.success(f"Level: {level}")
-
-        else:
-            st.error("Server error")
-
+# ---------------- CHAT UI ----------------
+for role, msg in st.session_state.chat_history:
+    if role == "user":
+        st.chat_message("user").write(msg)
     else:
-        st.warning("Please enter username and message")
+        st.chat_message("assistant").write(msg)
+
+# ---------------- USER INPUT ----------------
+user_input = st.chat_input("Say something...")
+
+if user_input:
+
+    # Save user message
+    st.session_state.chat_history.append(("user", user_input))
+
+    payload = {
+        "username": username,
+        "text": user_input
+    }
+
+    response = requests.post(API_URL, json=payload)
+    data = response.json()
+
+    ai_text = data["ai_response"]
+
+    # Save AI response
+    st.session_state.chat_history.append(("ai", ai_text))
+
+    # Refresh UI
+    st.rerun()
+
+# ---------------- SPEAK RESPONSE ----------------
+if st.session_state.chat_history:
+    last_msg = st.session_state.chat_history[-1]
+
+    if last_msg[0] == "ai":
+        ai_text = last_msg[1]
+
+        st.markdown(f"""
+        <script>
+        var msg = new SpeechSynthesisUtterance("{ai_text}");
+        window.speechSynthesis.speak(msg);
+        </script>
+        """, unsafe_allow_html=True)
