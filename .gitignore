@@ -1,8 +1,2 @@
-.env
-backend/.env
-__pycache__/
-*.pyc
-venv/
-node_modules/
-.hypothesis/
-.pytest_cache/
+# Created by venv; see https://docs.python.org/3/library/venv.html
+*
